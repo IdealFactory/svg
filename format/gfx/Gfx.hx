@@ -7,6 +7,7 @@ import openfl.display.CapsStyle;
 import openfl.display.JointStyle;
 import openfl.display.LineScaleMode;
 import format.svg.Text;
+import format.svg.Image;
 
 import openfl.geom.Matrix;
 
@@ -28,6 +29,8 @@ class Gfx
    public function curveTo(inCX:Float, inCY:Float,inX:Float,inY:Float) { }
 
    public function renderText(text:Text) { }
+
+   public function renderImage(image:Image) { }
 
    public function eof() {}
 }

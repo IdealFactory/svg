@@ -1,12 +1,17 @@
 package format.svg;
 
 import openfl.geom.Matrix;
+import openfl.geom.Transform;
 import openfl.geom.Rectangle;
+import openfl.display.Bitmap;
 import openfl.display.GradientType;
 import openfl.display.Graphics;
 import openfl.display.SpreadMethod;
 import openfl.display.CapsStyle;
 import openfl.display.JointStyle;
+import openfl.utils.ByteArray;
+import openfl.net.URLRequest;
+import openfl.net.URLLoader;
 import format.svg.Grad;
 import format.svg.Group;
 import format.svg.FillType;
@@ -15,6 +20,7 @@ import format.svg.PathSegment;
 import format.svg.Path;
 import format.svg.SVGRenderer;
 import format.svg.Text;
+import haxe.io.Bytes;
 
 #if haxe3
 import haxe.ds.StringMap;
@@ -172,6 +178,7 @@ class SVGData extends Group {
 				case DisplayPath (path): trace (indent + "Path" + "  " + path.matrix);
 				case DisplayGroup (group): dumpGroup (group, indent+"   ");
 				case DisplayText (text): trace (indent + "Text " + text.text);
+				case DisplayImage (image): trace (indent + "Image " + image.href);
 				
 			}
 			
@@ -578,6 +585,10 @@ class SVGData extends Group {
 				
 				g.children.push (DisplayPath (loadPath (el, matrix, styles, false, true, true)));
 				
+			} else if (name == "image") {
+				
+				g.children.push (DisplayImage (loadImage (el, matrix, styles)));
+				
 			} else if (name == "text") {
 				
 				g.children.push (DisplayText (loadText (el, matrix, styles)));
@@ -711,6 +722,34 @@ class SVGData extends Group {
 	}
 	
 	
+	public function loadImage (inImage:Xml, matrix:Matrix, inStyles:StringMap <String>):Image {
+		
+		if (inImage.exists ("transform")) {
+			
+			matrix = matrix.clone ();
+			applyTransform (matrix, inImage.get ("transform"));
+			
+		}
+		
+		var styles = getStyles (inImage, inStyles);
+		var image = new Image ();
+		
+		image.href = inImage.exists ("xlink:href") ? inImage.get ("xlink:href") : "";
+		image.name = inImage.exists ("id") ? inImage.get ("id") : image.href;
+		image.bitmap = new Bitmap();
+		image.bitmap.smoothing = true;
+		image.name = image.bitmap.name = inImage.exists ("id") ? inImage.get ("id") : "";
+		image.x = image.bitmap.x = getFloat (inImage, "x", 0.0);
+		image.y = image.bitmap.y = getFloat (inImage, "y", 0.0);
+		image.width = image.bitmap.width = getFloat (inImage, "width", 0.0);
+		image.height = image.bitmap.height = getFloat (inImage, "height", 0.0);
+		image.visible = getStyle( "display", inImage, styles, "block" ) != "none";
+		image.matrix = matrix;
+
+		return image;
+		
+	}
+
 	public function loadText (inText:Xml, matrix:Matrix, inStyles:StringMap <String>):Text {
 		
 		if (inText.exists ("transform")) {

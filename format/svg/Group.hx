@@ -36,6 +36,7 @@ enum DisplayElement
    DisplayPath(path:Path);
    DisplayGroup(group:Group);
    DisplayText(text:Text);
+   DisplayImage(image:Image);
 }
 
 typedef DisplayElements = Array<DisplayElement>;
