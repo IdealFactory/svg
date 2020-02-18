@@ -50,9 +50,10 @@ class SVGData extends Group {
 	private var mConvertCubics:Bool;
 	private var mGrads:GradHash;
 	private var mPathParser:PathParser;
+	private var baseImageUrl:String;
 	
 	
-	public function new (inXML:Xml, inConvertCubics:Bool = false) {
+	public function new (inXML:Xml, ?inConvertCubics:Bool = false, inBaseImageUrl:String = "") {
 		
 		super();
 		
@@ -64,6 +65,7 @@ class SVGData extends Group {
 		mGrads = new GradHash ();
 		mPathParser = new PathParser ();
 		mConvertCubics = inConvertCubics;
+		baseImageUrl = inBaseImageUrl;
 		
 		width = getFloatStyle ("width", svg, null, 0.0);
 		height = getFloatStyle ("height", svg, null, 0.0);
@@ -735,6 +737,9 @@ class SVGData extends Group {
 		var image = new Image ();
 		
 		image.href = inImage.exists ("xlink:href") ? inImage.get ("xlink:href") : "";
+		if (image.href.indexOf("http://") == -1 && image.href.indexOf("https://") == -1) {
+			image.href = baseImageUrl + image.href;
+		}
 		image.name = inImage.exists ("id") ? inImage.get ("id") : image.href;
 		image.bitmap = new Bitmap();
 		image.bitmap.smoothing = true;

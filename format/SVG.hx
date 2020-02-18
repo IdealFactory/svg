@@ -14,13 +14,11 @@ class SVG {
 	
 	public var data:SVGData;
 	
-	public var baseImagePath:String = "";
-	
-	public function new (content:String) {
+	public function new (content:String, baseImagePath:String = "") {
 		
 		if (content != null) {
 			
-			data = new SVGData (Xml.parse (content));
+			data = new SVGData (Xml.parse (content), baseImagePath);
 			
 		}
 		
@@ -43,7 +41,7 @@ class SVG {
 		matrix.translate (x, y);
 		
 		var renderer = new SVGRenderer (data, inLayer);
-		renderer.baseImagePath = baseImagePath;
+		// renderer.baseImagePath = baseImagePath;
 
 		renderer.render (graphics, matrix);
 		
@@ -65,7 +63,7 @@ class SVG {
 		sprite.y = y;
 		
 		var renderer = new SVGRenderer (data, inLayer);
-		renderer.baseImagePath = baseImagePath;
+		// renderer.baseImagePath = baseImagePath;
 
 		renderer.renderDisplayList (sprite);
 		
