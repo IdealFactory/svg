@@ -740,10 +740,9 @@ class SVGData extends Group {
 		if (image.href.indexOf("http://") == -1 && image.href.indexOf("https://") == -1) {
 			image.href = baseImageUrl + image.href;
 		}
-		image.name = inImage.exists ("id") ? inImage.get ("id") : image.href;
 		image.bitmap = new Bitmap();
 		image.bitmap.smoothing = true;
-		image.name = image.bitmap.name = inImage.exists ("id") ? inImage.get ("id") : "";
+		image.name = image.bitmap.name = inImage.exists ("id") ? inImage.get ("id") : image.href;
 		image.x = image.bitmap.x = getFloat (inImage, "x", 0.0);
 		image.y = image.bitmap.y = getFloat (inImage, "y", 0.0);
 		image.width = image.bitmap.width = getFloat (inImage, "width", 0.0);

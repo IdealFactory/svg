@@ -1,6 +1,7 @@
 package format;
 
 
+import format.svg.Image;
 import openfl.display.Graphics;
 import openfl.display.Sprite;
 import openfl.geom.Matrix;
@@ -13,6 +14,7 @@ class SVG {
 	
 	
 	public var data:SVGData;
+	public var renderer:SVGRenderer;
 	
 	public function new (content:String, baseImagePath:String = "") {
 		
@@ -40,7 +42,7 @@ class SVG {
 		
 		matrix.translate (x, y);
 		
-		var renderer = new SVGRenderer (data, inLayer);
+		renderer = new SVGRenderer (data, inLayer);
 		// renderer.baseImagePath = baseImagePath;
 
 		renderer.render (graphics, matrix);
@@ -48,7 +50,7 @@ class SVG {
 	}
 	
 	
-	public function renderDisplayList (sprite:Sprite, x:Float = 0, y:Float = 0, width:Int = -1, height:Int = -1, ?inLayer:String = null) {
+	public function renderDisplayList (sprite:Sprite, x:Float = 0, y:Float = 0, width:Int = -1, height:Int = -1, ?loadImageCallback:Image->Void, ?inLayer:String = null) {
 		
 		if (data == null) return;
 		
@@ -62,7 +64,8 @@ class SVG {
 		sprite.x = x;
 		sprite.y = y;
 		
-		var renderer = new SVGRenderer (data, inLayer);
+		renderer = new SVGRenderer (data, inLayer);
+		renderer.loadImageCallback = loadImageCallback;
 		// renderer.baseImagePath = baseImagePath;
 
 		renderer.renderDisplayList (sprite);

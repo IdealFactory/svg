@@ -36,6 +36,7 @@ class SVGRenderer
     public var height(default,null):Float;
     public var baseImagePath:String = "";
     public var imageDependencies:Map<String, BitmapData>;
+	public var loadImageCallback:Image->Void;
 
     var mSvg:SVGData;
     var mRoot:Group;
@@ -50,19 +51,19 @@ class SVGRenderer
 
     public function new(inSvg:SVGData,?inLayer:String)
     {
-		 imageDependencies = new Map<String, BitmapData>();
+		imageDependencies = new Map<String, BitmapData>();
 		
-       mSvg = inSvg;
+		mSvg = inSvg;
 
-       width = mSvg.width;
-       height = mSvg.height;
-       mRoot = mSvg;
-       if (inLayer!=null)
-       {
-          mRoot = mSvg.findGroup(inLayer);
-          if (mRoot==null)
-             throw "Could not find SVG group: " + inLayer;
-       }
+		width = mSvg.width;
+		height = mSvg.height;
+		mRoot = mSvg;
+		if (inLayer != null)
+		{
+			mRoot = mSvg.findGroup(inLayer);
+			if (mRoot==null)
+				throw "Could not find SVG group: " + inLayer;
+		}
     }
 
     public static function toHaxe(inXML:Xml,?inFilter:ObjectFilter) : Array<String>
@@ -101,53 +102,46 @@ class SVGRenderer
 
     public function iterateImage(inImage:Image)
     {
-       if (mFilter!=null && !mFilter(inImage.name,mGroupPath))
-          return;
+		if (mFilter!=null && !mFilter(inImage.name, mGroupPath)) return;
        
-       if (parent != null && inImage.visible) {
+		if (parent != null && inImage.visible) {
 
-          if (inImage.bitmap.bitmapData == null) {
+		if (inImage.bitmap.bitmapData == null) {
 
             if (imageDependencies.exists(inImage.href)) {
-               var imageDependency = imageDependencies[inImage.href];
+				var imageDependency = imageDependencies[inImage.href];
 
-               if (imageDependency != null) {
-                  inImage.bitmap.bitmapData = imageDependency;
-                  copyToBitmap( inImage );
-            }
+				if (imageDependency != null) {
+					inImage.bitmap.bitmapData = imageDependency;
+					copyToBitmap(inImage);
+				}
             } else {
-               if ( StringTools.startsWith(inImage.href, "data:") ) {
-                  // Data URI for image bytes
-                  var mimeType = inImage.href.split(";")[0].substr(5);
-                  var imageBytes = haxe.crypto.Base64.decode( inImage.href.substr( inImage.href.indexOf(",")+1 ) );
-      
-                  //TODO:
-               } else {
-                  imageDependencies[inImage.href] = null;
-      
-                  ImageLoader.loadImage( inImage.href, function( bmd:BitmapData ) {
-                     imageDependencies[inImage.href] = bmd;
-                     inImage.bitmap.bitmapData = bmd;
-                     copyToBitmap( inImage );
-                  } );
-               }
-      
-            }
-          }
+				if (StringTools.startsWith(inImage.href, "data:")) {
+					// Data URI for image bytes
+					var mimeType = inImage.href.split(";")[0].substr(5);
+					var imageBytes = haxe.crypto.Base64.decode(inImage.href.substr( inImage.href.indexOf(",") + 1));
 
-          parent.addChild( inImage.bitmap );
-       }
-    }
+					//TODO:
+				} else {
+					imageDependencies[inImage.href] = null;
+					if(loadImageCallback != null) loadImageCallback(inImage);
+					
+				}
+			}
+		}
+		}
+	}
 
     private function copyToBitmap(image:Image) {
-      image.bitmap.smoothing = true;
-      image.bitmap.x = image.x;
-      image.bitmap.y = image.y;
-      image.bitmap.width = image.width;
-      image.bitmap.height = image.height;
-      var m = image.bitmap.transform.matrix;
-      m.concat( image.matrix );
-      image.bitmap.transform.matrix = m;
+		image.bitmap.smoothing = true;
+		image.bitmap.name = image.name;
+		image.bitmap.x = image.x;
+		image.bitmap.y = image.y;
+		image.bitmap.width = image.width;
+		image.bitmap.height = image.height;
+		var m = image.bitmap.transform.matrix;
+		m.concat(image.matrix);
+		image.bitmap.transform.matrix = m;
     }
    
     public function iteratePath(inPath:Path)
@@ -221,46 +215,42 @@ class SVGRenderer
 
     public function iterateGroup(inGroup:Group,inIgnoreDot:Bool,separateGraphics:Bool = false)
     {
-       // Convention for hidden layers ...
-       if (inIgnoreDot && inGroup.name!=null && inGroup.name.substr(0,1)==".")
-          return;
+		// Convention for hidden layers ...
+		if (inIgnoreDot && inGroup.name !=null && inGroup.name.substr(0,1) == ".")
+			return;
 
-       mGroupPath.push(inGroup.name);
+		mGroupPath.push(inGroup.name);
 
-       // if (mFilter!=null && !mFilter(inGroup.name)) return;
-
-       for(child in inGroup.children)
-       {
-          switch(child)
-          {
-             case DisplayGroup(group):
-                var oldParent = parent;
-                if (separateGraphics) {
-                   var s = new Sprite();
-                   s.name = group.name;
-                   parent.addChild( s );
-                   mGfx = new format.gfx.GfxGraphics(s.graphics);
-                   parent = s;
-                }
-                iterateGroup(group,inIgnoreDot,separateGraphics);
-                if (separateGraphics) {
-                   parent = oldParent;
-                }
-             case DisplayPath(path):
-                iteratePath(path);
-             case DisplayText(text):
-                iterateText(text);
-             case DisplayImage(image):
-                iterateImage(image);
-          }
-       }
+		// if (mFilter!=null && !mFilter(inGroup.name)) return;
+		for(child in inGroup.children)
+		{
+			switch(child)
+			{
+				case DisplayGroup(group):
+					var oldParent = parent;
+					if (separateGraphics) {
+						var s = new Sprite();
+						s.name = group.name;
+						parent.addChild( s );
+						mGfx = new format.gfx.GfxGraphics(s.graphics);
+						parent = s;
+					}
+					iterateGroup(group,inIgnoreDot,separateGraphics);
+					if (separateGraphics) {
+						parent = oldParent;
+					}
+				case DisplayPath(path):
+					iteratePath(path);
+				case DisplayText(text):
+					iterateText(text);
+				case DisplayImage(image):
+					image.parentGroupName = inGroup.name;
+					iterateImage(image);
+			}
+		}
        
-       mGroupPath.pop();
-    }
-
-
-
-
+		mGroupPath.pop();
+	}
 
     public function render(inGfx:Graphics,?inMatrix:Matrix, ?inFilter:ObjectFilter, ?inScaleRect:Rectangle,?inScaleW:Float, ?inScaleH:Float )
     {

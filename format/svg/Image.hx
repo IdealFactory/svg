@@ -17,4 +17,5 @@ class Image
    public var href:String;
    public var bitmap:Bitmap;
    public var visible:Bool;
+   public var parentGroupName:String;
 }
