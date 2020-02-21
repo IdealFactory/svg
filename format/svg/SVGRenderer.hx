@@ -36,7 +36,7 @@ class SVGRenderer
     public var height(default,null):Float;
     public var baseImagePath:String = "";
     public var imageDependencies:Map<String, BitmapData>;
-	public var loadImageCallback:Image->Void;
+	 public var loadImageCallback:Image->Void;
 
     var mSvg:SVGData;
     var mRoot:Group;
@@ -106,29 +106,31 @@ class SVGRenderer
        
 		if (parent != null && inImage.visible) {
 
-		if (inImage.bitmap.bitmapData == null) {
+         if (inImage.bitmap.bitmapData == null) {
 
             if (imageDependencies.exists(inImage.href)) {
-				var imageDependency = imageDependencies[inImage.href];
+               var imageDependency = imageDependencies[inImage.href];
 
-				if (imageDependency != null) {
-					inImage.bitmap.bitmapData = imageDependency;
-					copyToBitmap(inImage);
-				}
+               if (imageDependency != null) {
+                  inImage.bitmap.bitmapData = imageDependency;
+                  copyToBitmap(inImage);
+               }
             } else {
-				if (StringTools.startsWith(inImage.href, "data:")) {
-					// Data URI for image bytes
-					var mimeType = inImage.href.split(";")[0].substr(5);
-					var imageBytes = haxe.crypto.Base64.decode(inImage.href.substr( inImage.href.indexOf(",") + 1));
+               if (StringTools.startsWith(inImage.href, "data:")) {
+                  // Data URI for image bytes
+                  var mimeType = inImage.href.split(";")[0].substr(5);
+                  var imageBytes = haxe.crypto.Base64.decode(inImage.href.substr( inImage.href.indexOf(",") + 1));
 
-					//TODO:
-				} else {
-					imageDependencies[inImage.href] = null;
-					if(loadImageCallback != null) loadImageCallback(inImage);
-					
-				}
-			}
-		}
+                  //TODO:
+               } else {
+                  imageDependencies[inImage.href] = null;
+                  if (loadImageCallback != null) loadImageCallback(inImage);
+                  
+               }
+            }
+         } else {
+            if (loadImageCallback != null) loadImageCallback(inImage);
+         }
 		}
 	}
 
@@ -229,9 +231,12 @@ class SVGRenderer
 				case DisplayGroup(group):
 					var oldParent = parent;
 					if (separateGraphics) {
-						var s = new Sprite();
-						s.name = group.name;
-						parent.addChild( s );
+                  var s:Sprite = cast parent.getChildByName(group.name);
+                  if (s == null) {
+                     s = new Sprite();
+                     s.name = group.name;
+                     parent.addChild( s );
+                  }
 						mGfx = new format.gfx.GfxGraphics(s.graphics);
 						parent = s;
 					}
