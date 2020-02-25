@@ -36,7 +36,7 @@ class SVGRenderer
     public var height(default,null):Float;
     public var baseImagePath:String = "";
     public var imageDependencies:Map<String, BitmapData>;
-	public var loadImageCallback:Image->Void;
+	  public var loadImageCallback:Image->Void;
 
     var mSvg:SVGData;
     var mRoot:Group;
@@ -385,6 +385,23 @@ class SVGRenderer
        return bmp;
     }
 
+    public function renderGroup(inObj:Sprite, inGroup:Group = null)
+    {
+      var oldmRoot = mRoot;
+
+      if (inGroup != null) {
+        mRoot = inGroup;
+      }
+
+      mGfx = new format.gfx.GfxGraphics(inObj.graphics);
+      mMatrix = new Matrix();
+      mGroupPath = [];
+
+      iterateGroup(mRoot,false);
+
+      mRoot = oldmRoot;
+    }
+  
     public function renderDisplayList(inObj:Sprite)
     {
        parent = inObj;
