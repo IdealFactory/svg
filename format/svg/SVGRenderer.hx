@@ -218,12 +218,13 @@ class SVGRenderer
 				case DisplayGroup(group):
 					var oldParent = parent;
 					if (separateGraphics) {
-                  var s:Sprite = cast parent.getChildByName(group.name);
-                  if (s == null) {
-                     s = new Sprite();
-                     s.name = group.name;
-                     parent.addChild( s );
-                  }
+						var s:Sprite = cast parent.getChildByName(group.name);
+						if (s == null) {
+							s = new Sprite();
+							s.name = group.name;
+							parent.addChild( s );
+						}
+						s.graphics.clear();
 						mGfx = new format.gfx.GfxGraphics(s.graphics);
 						parent = s;
 					}
@@ -393,6 +394,7 @@ class SVGRenderer
         mRoot = inGroup;
       }
 
+      inObj.graphics.clear();
       mGfx = new format.gfx.GfxGraphics(inObj.graphics);
       mMatrix = new Matrix();
       mGroupPath = [];
