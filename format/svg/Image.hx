@@ -8,6 +8,7 @@ class Image
 {
 
 	public var name:String;
+	public var title:String;
 	public var matrix:Matrix;
 	public var x:Float;
 	public var y:Float;

@@ -590,7 +590,7 @@ class SVGData extends Group {
 			} else if (name == "image") {
 				
 				g.children.push (DisplayImage (loadImage (el, matrix, styles)));
-				
+
 			} else if (name == "text") {
 				
 				g.children.push (DisplayText (loadText (el, matrix, styles)));
@@ -603,7 +603,11 @@ class SVGData extends Group {
 				
 				loadGradient (el, GradientType.RADIAL, true);
 				
-			} else {
+			} else if (name == "title") {
+
+				g.title = (el.firstChild() != null) ? Std.string(el.firstChild()) : '';
+
+			}  else {
 				
 				// throw("Unknown child : " + el.nodeName );
 				
@@ -740,6 +744,11 @@ class SVGData extends Group {
 		if (image.href.indexOf("http://") == -1 && image.href.indexOf("https://") == -1) {
 			image.href = baseImageUrl + image.href;
 		}
+
+		if(inImage.firstElement() != null && inImage.firstElement().nodeName == 'title') {
+			image.title = (inImage.firstElement().firstChild() != null) ? Std.string(inImage.firstElement().firstChild()) : '';
+		}
+
 		image.bitmap = new Bitmap();
 		image.bitmap.smoothing = true;
 		image.name = image.bitmap.name = inImage.exists ("id") ? inImage.get ("id") : image.href;

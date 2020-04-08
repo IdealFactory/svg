@@ -6,6 +6,7 @@ class Group
    public function new()
    {
       name = "";
+      title = "";
       children = [];
    }
 
@@ -28,6 +29,7 @@ class Group
 
 
    public var name:String;
+   public var title:String;
    public var children:Array<DisplayElement>;
 }
 
