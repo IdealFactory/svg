@@ -14,6 +14,7 @@ class Image
 	public var y:Float;
 	public var width:Float;
 	public var height:Float;
+	public var uri:String;
 	public var href:String;
 	public var bitmap:Bitmap;
 	public var visible:Bool;
