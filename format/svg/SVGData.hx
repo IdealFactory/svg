@@ -20,6 +20,7 @@ import format.svg.PathSegment;
 import format.svg.Path;
 import format.svg.SVGRenderer;
 import format.svg.Text;
+import format.svg.Font;
 import haxe.io.Bytes;
 
 #if haxe3
@@ -46,6 +47,8 @@ class SVGData extends Group {
 	
 	public var height (default, null):Float;
 	public var width (default, null):Float;
+
+	public var svgFont:Font = null;
 
 	private var mConvertCubics:Bool;
 	private var mGrads:GradHash;
@@ -265,12 +268,43 @@ class SVGData extends Group {
 	}
 	
 	
+	private function getString (inXML:Xml, inName:String, inDef:String = ""):String {
+		
+		if (inXML.exists (inName))
+			return inXML.get (inName);
+		
+		return inDef;
+		
+	}
+
+	private function getInt (inXML:Xml, inName:String, inDef:Int = 0):Int {
+		
+		if (inXML.exists (inName))
+			return Std.parseInt (inXML.get (inName));
+		
+		return inDef;
+		
+	}
+	
+	
 	private function getFloat (inXML:Xml, inName:String, inDef:Float = 0.0):Float {
 		
 		if (inXML.exists (inName))
 			return Std.parseFloat (inXML.get (inName));
 		
 		return inDef;
+		
+	}
+	
+	
+	private function getRect (inXML:Xml, inName:String, inDef:Rectangle = null):Rectangle {
+		
+		if (inXML.exists (inName)) {
+			var r = inXML.get (inName).split(' ');
+
+			return new Rectangle( Std.parseFloat(r[0]),  Std.parseFloat(r[1]), Std.parseFloat(r[2]), Std.parseFloat(r[3]) );
+		}
+		return inDef!=null ? inDef : new Rectangle();
 		
 	}
 	
@@ -418,7 +452,14 @@ class SVGData extends Group {
 					loadGradient (def, GradientType.RADIAL, pass == 1);
 					
 				}
-				
+
+				if (pass == 0) {
+					if (name == "font") {
+						
+						loadFont (def);
+					
+					}
+				}
 			}
 			
 		}
@@ -620,6 +661,92 @@ class SVGData extends Group {
 	}
 	
 	
+	private function loadFont (inFont:Xml) {
+		var font = new Font();
+		font.id = getString(inFont, "id");
+		font.horizOriginX = getFloat(inFont, "horiz-origin-x", 0);
+		font.horizOriginY = getFloat(inFont, "horiz-origin-y", 0);
+		font.horizAdvX = getFloat(inFont, "horiz-adv-x", 0);
+		font.vertOriginX = getFloat(inFont, "vert-origin-x", font.horizAdvX / 2);
+		font.vertOriginY = getFloat(inFont, "vert-origin-y", 0);
+		font.vertAdvY = getFloat(inFont, "vert-adv-y", 0);
+		font.glyphs = [];
+		font.hkern = [];
+		font.vkern = [];
+
+		for (el in inFont.elements ()) {
+				
+			var name = el.nodeName;
+			
+			switch (name) {
+				case "font-face":
+					var ff = font.fontFace;
+					ff.fontFamily = getString(el, "font-family");
+					ff.fontWeight = getInt(el, "font-weight", 400);
+					ff.fontStretch = getString(el, "font-stretch");
+					ff.unitsPerEm = getInt(el, "units-per-em", 1000);
+					ff.panose1 = getString(el, "panose-1");
+					ff.ascent = getInt(el, "ascent", 800);
+					ff.descent = getInt(el, "descent", -200);
+					ff.xHeight = getInt(el, "x-height", 400);
+					ff.capHeight = getInt(el, "cap-height", 700);
+					ff.bbox = getRect(el, "bbox");
+					ff.underlineThickness = getInt(el, "underline-thickness", 20);
+					ff.underlinePosition = getInt(el, "underline-position", -210);
+					ff.unicodeRange = getString(el, "unicode-range","U+0-10FFFF");
+				case "missing-glyph":
+					var glyph = new Glyph();
+					glyph.name = "missing-glyph";
+					glyph.path = getString(el, "d");
+					glyph.horizAdvX = getFloat(el, "horiz-adv-x", font.horizAdvX);
+					glyph.vertOriginX = getFloat(el, "vert-origin-x", font.vertOriginX);
+					glyph.vertOriginY = getFloat(el, "vert-origin-y", font.vertOriginY);
+					glyph.vertAdvY = getFloat(el, "vert-adv-y", font.vertAdvY);
+					for (segment in mPathParser.parse (glyph.path, mConvertCubics)) {
+						glyph.segments.push (segment);
+					}
+					font.missingGlyph = glyph;			
+				case "glyph":
+					var glyph = new Glyph();
+					glyph.name = getString(el, "glyph-name");
+					glyph.unicode = getString(el, "unicode");
+					glyph.path = getString(el, "d");
+					glyph.horizAdvX = getFloat(el, "horiz-adv-x", font.horizAdvX);
+					glyph.vertOriginX = getFloat(el, "vert-origin-x", font.vertOriginX);
+					glyph.vertOriginY = getFloat(el, "vert-origin-y", font.vertOriginY);
+					glyph.vertAdvY = getFloat(el, "vert-adv-y", font.vertAdvY);
+					glyph.orientation = getString(el, "orientation");
+					glyph.arabicForm = getString(el, "arabic-form");
+					glyph.lang = getString(el, "lang");
+					for (segment in mPathParser.parse (glyph.path, mConvertCubics)) {
+						glyph.segments.push (segment);
+					}
+					font.glyphs[glyph.unicode] = glyph;
+				case "hkern":
+					var kern = new Kern();
+					kern.u1 = getString(el, "u1");
+					kern.u2 = getString(el, "u2");
+					kern.g1 = getString(el, "g1");
+					kern.g2 = getString(el, "g2");
+					kern.k = getInt(el, "k");
+					font.hkern.push( kern );
+				case "vkern":
+					var kern = new Kern();
+					kern.u1 = getString(el, "u1");
+					kern.u2 = getString(el, "u2");
+					kern.g1 = getString(el, "g1");
+					kern.g2 = getString(el, "g2");
+					kern.k = getInt(el, "k");
+					font.vkern.push( kern );
+				default:
+					// Unknown element
+			}
+		}
+
+		svgFont = font;
+	}
+
+
 	public function loadPath (inPath:Xml, matrix:Matrix, inStyles:StringMap<String>, inIsRect:Bool, inIsEllipse:Bool, inIsCircle:Bool=false):Path {
 		
 		if (inPath.exists ("transform")) {

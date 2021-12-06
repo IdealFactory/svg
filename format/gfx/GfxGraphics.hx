@@ -37,6 +37,9 @@ class GfxGraphics extends Gfx
    override public function moveTo(inX:Float, inY:Float) { graphics.moveTo(inX,inY); }
    override public function lineTo(inX:Float, inY:Float) { graphics.lineTo(inX,inY); }
    override public function curveTo(inCX:Float, inCY:Float,inX:Float,inY:Float)
-     { graphics.curveTo(inCX,inCY,inX,inY); }
+   {
+      @:privateAccess graphics.__commands.windingNonZero();
+      graphics.curveTo(inCX,inCY,inX,inY);
+   }
 }
 
