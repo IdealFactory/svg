@@ -1,11 +1,16 @@
 package format.svg;
 
 import openfl.geom.Rectangle;
+#if lime
+import openfl.text.Font as OpenFLFont;
+#end
 
-
-class Font
+class Font #if lime extends OpenFLFont #end
 {
-    public function new() {
+    public function new(name:String = null) {
+        super(name);
+        
+        id = name;
         fontFace = new FontFace();
         glyphs = new Map<String, Glyph>();
         hkern = [];
@@ -26,6 +31,15 @@ class Font
     public var hkern:Array<Kern>;
     public var vkern:Array<Kern>;
 
+	public function getSupportedFontChars():Array<String>
+    {
+        var a = [];
+        for (g in glyphs)
+        {
+            a.push(g.unicode);
+        }
+        return a;
+    }    
 }
 
 class FontFace
@@ -64,6 +78,22 @@ class Glyph
     public var arabicForm:String;
     public var lang:String;
     public var segments:Array<PathSegment>;
+
+    public function clone() {
+        var g = new Glyph();
+        g.name = this.name;
+        g.unicode = this.unicode;
+        g.path = this.path;
+        g.horizAdvX = this.horizAdvX;
+        g.vertOriginX = this.vertOriginX;
+        g.vertOriginY = this.vertOriginY;
+        g.vertAdvY = this.vertAdvY;
+        g.orientation = this.orientation;
+        g.arabicForm = this.arabicForm;
+        g.lang = this.lang;
+        g.segments = this.segments;
+        return g;
+    }
 }
 
 class Kern

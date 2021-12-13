@@ -662,8 +662,8 @@ class SVGData extends Group {
 	
 	
 	private function loadFont (inFont:Xml) {
-		var font = new Font();
-		font.id = getString(inFont, "id");
+		var name = getString(inFont, "id");
+		var font = new Font(name);
 		font.horizOriginX = getFloat(inFont, "horiz-origin-x", 0);
 		font.horizOriginY = getFloat(inFont, "horiz-origin-y", 0);
 		font.horizAdvX = getFloat(inFont, "horiz-adv-x", 0);
