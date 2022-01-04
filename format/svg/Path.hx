@@ -24,6 +24,7 @@ class Path
    public var stroke_colour:Null<Int>;
    public var stroke_width:Float;
    public var stroke_caps:CapsStyle;
+   public var stroke_style:StrokeStyle;
    public var joint_style:JointStyle;
    public var miter_limit:Float;
 

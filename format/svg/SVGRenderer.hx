@@ -157,6 +157,28 @@ class SVGRenderer
           //  4. continue with "real" drawing
           inPath.segments[0].toGfx(mGfx, context);
 
+          if (inPath.stroke_colour==null)
+          {
+             //mGfx.lineStyle();
+          }
+          else if (inPath.stroke_style == StrokeStyle.OUTSIDE)
+          {
+             var style = new format.gfx.LineStyle();
+             var scale = Math.sqrt(m.a*m.a + m.d*m.d)/SQRT2;
+             style.thickness = inPath.stroke_width*scale;
+             style.alpha = inPath.stroke_alpha*inPath.alpha;
+             style.color = inPath.stroke_colour;
+             style.capsStyle = inPath.stroke_caps;
+             style.jointStyle = inPath.joint_style;
+             style.miterLimit = inPath.miter_limit;
+             mGfx.lineStyle(style);
+
+             for(segment in inPath.segments)
+               segment.toGfx(mGfx, context);
+  
+             mGfx.endLineStyle(); 
+          }
+
           switch(inPath.fill)
           {
              case FillGrad(grad):
@@ -173,7 +195,7 @@ class SVGRenderer
           {
              //mGfx.lineStyle();
           }
-          else
+          else if (inPath.stroke_style == StrokeStyle.BOTH)
           {
              var style = new format.gfx.LineStyle();
              var scale = Math.sqrt(m.a*m.a + m.d*m.d)/SQRT2;
@@ -185,18 +207,20 @@ class SVGRenderer
              style.miterLimit = inPath.miter_limit;
              mGfx.lineStyle(style);
           }
+
+          for(segment in inPath.segments)
+             segment.toGfx(mGfx, context);
+
+          if (inPath.stroke_colour!=null && inPath.stroke_style == StrokeStyle.BOTH)  
+             mGfx.endLineStyle(); 
+
        }
-
-
-       for(segment in inPath.segments)
-          segment.toGfx(mGfx, context);
-
 
        // endFill automatically close an open path
        // by putting endLineStyle before endFill, the closing line is not drawn
        // so an open path in inkscape stay open in openfl
        // this does not affect closed path
-       mGfx.endLineStyle(); 
+       
        mGfx.endFill();
     }
 
