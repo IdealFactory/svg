@@ -67,6 +67,10 @@ class PathParser {
 
         var len = pathToParse.length;
         var finished = false;
+        var firstCommand:PathSegment = null;
+        var firstPX=.0;
+        var firstPY=.0;
+
         while( pos<=len )
         {
             var code = pos==len ? 32 : pathToParse.charCodeAt(pos);
@@ -156,6 +160,22 @@ class PathParser {
                   if (prev==null)
                      throw "Unknown command " + String.fromCharCode(current_command) +
                         " near '" + pathToParse.substr(current_command_pos) + "'"; 
+
+                  if (Std.is(prev, MoveSegment) && firstCommand != null) {
+                     if (inConvertCubics && firstCommand.getType()==PathSegment.CUBIC)
+                     {
+                        var cubic:CubicSegment = cast firstCommand;
+                        var quads = cubic.toQuadratics(px,py);
+                        for(q in quads)
+                           segments.push(q);
+                        firstPX = px;
+                        firstPY = py;
+                     }
+                     else
+                        segments.push(firstCommand);
+                     firstCommand = null;
+                  }
+                  
                   if (inConvertCubics && prev.getType()==PathSegment.CUBIC)
                   {
                      var cubic:CubicSegment = cast prev;
@@ -165,6 +185,10 @@ class PathParser {
                   }
                   else
                      segments.push(prev);
+
+                  if (firstCommand == null && !Std.is(prev, MoveSegment)) {
+                     firstCommand = prev;
+                  }
 
                   finished = true;
                   if (current_args==0)
@@ -182,6 +206,19 @@ class PathParser {
                }
             }
         }
+
+        if (firstCommand != null) {
+            if (inConvertCubics && firstCommand.getType()==PathSegment.CUBIC)
+            {
+               var cubic:CubicSegment = cast firstCommand;
+               var quads = cubic.toQuadratics(firstPX, firstPY);
+               for(q in quads)
+                  segments.push(q);
+            }
+            else
+               segments.push(firstCommand);
+         }
+         
 
         if (current_command>=0 && !finished)
         {
