@@ -67,9 +67,11 @@ class PathParser {
 
         var len = pathToParse.length;
         var finished = false;
-        var firstCommand:PathSegment = null;
-        var firstPX=.0;
-        var firstPY=.0;
+        var replayCmd:PathSegment = null;
+        var replayPX:Float = 0.0;
+        var replayPY:Float = 0.0;
+        var px:Float = 0.0;
+        var py:Float = 0.0;
 
         while( pos<=len )
         {
@@ -145,8 +147,8 @@ class PathParser {
                pos++;
             }
 
-            var px:Float = 0.0;
-            var py:Float = 0.0;
+            px = 0.0;
+            py = 0.0;
             if (current_command>=0)
             {
                if (current_args==args.length)
@@ -161,19 +163,19 @@ class PathParser {
                      throw "Unknown command " + String.fromCharCode(current_command) +
                         " near '" + pathToParse.substr(current_command_pos) + "'"; 
 
-                  if (Std.is(prev, MoveSegment) && firstCommand != null) {
-                     if (inConvertCubics && firstCommand.getType()==PathSegment.CUBIC)
+                  if (Std.is(prev, MoveSegment) && replayCmd != null) {
+                     if (inConvertCubics && replayCmd.getType()==PathSegment.CUBIC)
                      {
-                        var cubic:CubicSegment = cast firstCommand;
+                        var cubic:CubicSegment = cast replayCmd;
                         var quads = cubic.toQuadratics(px,py);
                         for(q in quads)
                            segments.push(q);
-                        firstPX = px;
-                        firstPY = py;
+                        replayPX = px;
+                        replayPY = py;
                      }
                      else
-                        segments.push(firstCommand);
-                     firstCommand = null;
+                        segments.push(replayCmd);
+                     replayCmd = null;
                   }
                   
                   if (inConvertCubics && prev.getType()==PathSegment.CUBIC)
@@ -186,8 +188,11 @@ class PathParser {
                   else
                      segments.push(prev);
 
-                  if (firstCommand == null && !Std.is(prev, MoveSegment)) {
-                     firstCommand = prev;
+                  if (replayCmd == null && !Std.is(prev, MoveSegment)) {
+                     if (Std.is(prev, DrawSegment))
+                        replayCmd = prev;
+                     else
+                        replayCmd = new MoveSegment(prev.x, prev.y);
                   }
 
                   finished = true;
@@ -207,18 +212,16 @@ class PathParser {
             }
         }
 
-        if (firstCommand != null) {
-            if (inConvertCubics && firstCommand.getType()==PathSegment.CUBIC)
+        if (replayCmd != null && px==replayPX && py==replayPY) {
+            if (inConvertCubics && replayCmd.getType()==PathSegment.CUBIC)
             {
-               var cubic:CubicSegment = cast firstCommand;
-               var quads = cubic.toQuadratics(firstPX, firstPY);
+               var cubic:CubicSegment = cast replayCmd;
+               var quads = cubic.toQuadratics(replayPX, replayPY);
                for(q in quads)
                   segments.push(q);
-            }
-            else
-               segments.push(firstCommand);
+            } else
+               segments.push(replayCmd);
          }
-         
 
         if (current_command>=0 && !finished)
         {
