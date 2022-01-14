@@ -766,8 +766,8 @@ class SVGData extends Group {
 		path.stroke_alpha = getFloatStyle ("stroke-opacity", inPath, styles, 1.0);
 		path.stroke_colour = getStrokeStyle ("stroke", inPath, styles, null);
 		path.stroke_width = getFloatStyle ("stroke-width", inPath, styles, 1.0);
-		path.stroke_style = getStyleAndConvert ("stroke-style", inPath, styles, StrokeStyle.BOTH, 
-			["outside" => StrokeStyle.OUTSIDE, "both" => StrokeStyle.BOTH]);
+		path.stroke_style = getStyleAndConvert ("paint-order", inPath, styles, StrokeStyle.BOTH, 
+			["stroke fill" => StrokeStyle.OUTSIDE, "fill stroke" => StrokeStyle.BOTH]);
 		path.stroke_caps = getStyleAndConvert ("stroke-linecap", inPath, styles, CapsStyle.NONE, 
 			["round" => CapsStyle.ROUND, "square" => CapsStyle.SQUARE, "butt" => CapsStyle.NONE]);
 		path.joint_style = getStyleAndConvert ("stroke-linejoin", inPath, styles, JointStyle.MITER, 
