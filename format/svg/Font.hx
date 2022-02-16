@@ -8,7 +8,11 @@ import openfl.text.Font as OpenFLFont;
 class Font #if lime extends OpenFLFont #end
 {
     public function new(name:String = null) {
+        #if flash
+        super();
+        #else
         super(name);
+        #end
         
         id = name;
         fontFace = new FontFace();

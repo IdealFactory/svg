@@ -213,6 +213,12 @@ class SVGData extends Group {
 			return parseRGBMatch(mRGBMatch);
 			
 		}
+
+		if (SVGColor.getColor(s) != null) {
+
+			return SVGColor.getColor(s);
+
+		}
 		
 		return Std.parseInt (s);
 		
@@ -287,11 +293,16 @@ class SVGData extends Group {
 	}
 	
 	
-	private function getFloat (inXML:Xml, inName:String, inDef:Float = 0.0):Float {
+	private function getFloat (inXML:Xml, inName:String, inDef:Float = 0.0, percentRange:Float = 0.0):Float {
 		
-		if (inXML.exists (inName))
-			return Std.parseFloat (inXML.get (inName));
-		
+		if (inXML.exists (inName)) {
+			var val = inXML.get (inName);
+			if (val.indexOf("%")==val.length-1) {
+				var pcntVal = Std.parseFloat (val) * percentRange / 100;
+				return pcntVal;
+			}
+			return Std.parseFloat (val);
+		}
 		return inDef;
 		
 	}
@@ -499,19 +510,19 @@ class SVGData extends Group {
 			
 		}
 
-		if (inGrad.exists ("x1")) {
-		
-			grad.x1 = getFloat (inGrad, "x1");
-			grad.y1 = getFloat (inGrad, "y1");
-			grad.x2 = getFloat (inGrad, "x2");
-			grad.y2 = getFloat (inGrad, "y2");
-			
+		if (inType == GradientType.LINEAR) {
+
+			grad.x1 = getFloat (inGrad, "x1", 0, width);
+			grad.y1 = getFloat (inGrad, "y1", 0, height);
+			grad.x2 = getFloat (inGrad, "x2", width, width);
+			grad.y2 = getFloat (inGrad, "y2", height, height);
+
 		} else {
 			
-			grad.x1 = getFloat (inGrad, "cx");
-			grad.y1 = getFloat (inGrad, "cy");
-			grad.x2 = getFloat (inGrad, "fx", grad.x1);
-			grad.y2 = getFloat (inGrad, "fy", grad.y1);
+			grad.x1 = getFloat (inGrad, "cx", width * 0.5, width);
+			grad.y1 = getFloat (inGrad, "cy", height * 0.5, height);
+			grad.x2 = getFloat (inGrad, "fx", grad.x1, width);
+			grad.y2 = getFloat (inGrad, "fy", grad.y1, height);
 			
 		}
 
@@ -969,5 +980,165 @@ class SVGData extends Group {
 			if (rgbMatch.matched(6)=='%') { b = b * 255 / 100; }
 
 			return ( range(r)<<16 ) | ( range(g)<<8 ) | range(b);
+	}
+}
+
+class SVGColor {
+	static var inst:SVGColor;
+	var colors = new Map<String,UInt>();
+	public function new() {
+		colors['black'] = 0x000000;
+		colors['navy'] = 0x000080;
+		colors['darkblue'] = 0x00008B;
+		colors['mediumblue'] = 0x0000CD;
+		colors['blue'] = 0x0000FF;
+		colors['darkgreen'] = 0x006400;
+		colors['green'] = 0x008000;
+		colors['teal'] = 0x008080;
+		colors['darkcyan'] = 0x008B8B;
+		colors['deepskyblue'] = 0x00BFFF;
+		colors['darkturquoise'] = 0x00CED1;
+		colors['mediumspringgreen'] = 0x00FA9A;
+		colors['lime'] = 0x00FF00;
+		colors['springgreen'] = 0x00FF7F;
+		colors['cyan'] = 0x00FFFF;
+		colors['aqua'] = 0x00FFFF;
+		colors['midnightblue'] = 0x191970;
+		colors['dodgerblue'] = 0x1E90FF;
+		colors['lightseagreen'] = 0x20B2AA;
+		colors['forestgreen'] = 0x228B22;
+		colors['seagreen'] = 0x2E8B57;
+		colors['darkslategray'] = 0x2F4F4F;
+		colors['darkslategrey'] = 0x2F4F4F;
+		colors['limegreen'] = 0x32CD32;
+		colors['mediumseagreen'] = 0x3CB371;
+		colors['turquoise'] = 0x40E0D0;
+		colors['royalblue'] = 0x4169E1;
+		colors['steelblue'] = 0x4682B4;
+		colors['darkslateblue'] = 0x483D8B;
+		colors['mediumturquoise'] = 0x48D1CC;
+		colors['indigo'] = 0x4B0082;
+		colors['darkolivegreen'] = 0x556B2F;
+		colors['cadetblue'] = 0x5F9EA0;
+		colors['cornflowerblue'] = 0x6495ED;
+		colors['mediumaquamarine'] = 0x66CDAA;
+		colors['dimgrey'] = 0x696969;
+		colors['dimgray'] = 0x696969;
+		colors['slateblue'] = 0x6A5ACD;
+		colors['olivedrab'] = 0x6B8E23;
+		colors['slategrey'] = 0x708090;
+		colors['slategray'] = 0x708090;
+		colors['lightslategray'] = 0x778899;
+		colors['lightslategrey'] = 0x778899;
+		colors['mediumslateblue'] = 0x7B68EE;
+		colors['lawngreen'] = 0x7CFC00;
+		colors['chartreuse'] = 0x7FFF00;
+		colors['aquamarine'] = 0x7FFFD4;
+		colors['maroon'] = 0x800000;
+		colors['purple'] = 0x800080;
+		colors['olive'] = 0x808000;
+		colors['gray'] = 0x808080;
+		colors['grey'] = 0x808080;
+		colors['skyblue'] = 0x87CEEB;
+		colors['lightskyblue'] = 0x87CEFA;
+		colors['blueviolet'] = 0x8A2BE2;
+		colors['darkred'] = 0x8B0000;
+		colors['darkmagenta'] = 0x8B008B;
+		colors['saddlebrown'] = 0x8B4513;
+		colors['darkseagreen'] = 0x8FBC8F;
+		colors['lightgreen'] = 0x90EE90;
+		colors['mediumpurple'] = 0x9370DB;
+		colors['darkviolet'] = 0x9400D3;
+		colors['palegreen'] = 0x98FB98;
+		colors['darkorchid'] = 0x9932CC;
+		colors['yellowgreen'] = 0x9ACD32;
+		colors['sienna'] = 0xA0522D;
+		colors['brown'] = 0xA52A2A;
+		colors['darkgray'] = 0xA9A9A9;
+		colors['darkgrey'] = 0xA9A9A9;
+		colors['lightblue'] = 0xADD8E6;
+		colors['greenyellow'] = 0xADFF2F;
+		colors['paleturquoise'] = 0xAFEEEE;
+		colors['lightsteelblue'] = 0xB0C4DE;
+		colors['powderblue'] = 0xB0E0E6;
+		colors['firebrick'] = 0xB22222;
+		colors['darkgoldenrod'] = 0xB8860B;
+		colors['mediumorchid'] = 0xBA55D3;
+		colors['rosybrown'] = 0xBC8F8F;
+		colors['darkkhaki'] = 0xBDB76B;
+		colors['silver'] = 0xC0C0C0;
+		colors['mediumvioletred'] = 0xC71585;
+		colors['indianred'] = 0xCD5C5C;
+		colors['peru'] = 0xCD853F;
+		colors['chocolate'] = 0xD2691E;
+		colors['tan'] = 0xD2B48C;
+		colors['lightgray'] = 0xD3D3D3;
+		colors['lightgrey'] = 0xD3D3D3;
+		colors['thistle'] = 0xD8BFD8;
+		colors['orchid'] = 0xDA70D6;
+		colors['goldenrod'] = 0xDAA520;
+		colors['palevioletred'] = 0xDB7093;
+		colors['crimson'] = 0xDC143C;
+		colors['gainsboro'] = 0xDCDCDC;
+		colors['plum'] = 0xDDA0DD;
+		colors['burlywood'] = 0xDEB887;
+		colors['lightcyan'] = 0xE0FFFF;
+		colors['lavender'] = 0xE6E6FA;
+		colors['darksalmon'] = 0xE9967A;
+		colors['violet'] = 0xEE82EE;
+		colors['palegoldenrod'] = 0xEEE8AA;
+		colors['lightcoral'] = 0xF08080;
+		colors['khaki'] = 0xF0E68C;
+		colors['aliceblue'] = 0xF0F8FF;
+		colors['honeydew'] = 0xF0FFF0;
+		colors['azure'] = 0xF0FFFF;
+		colors['sandybrown'] = 0xF4A460;
+		colors['wheat'] = 0xF5DEB3;
+		colors['beige'] = 0xF5F5DC;
+		colors['whitesmoke'] = 0xF5F5F5;
+		colors['mintcream'] = 0xF5FFFA;
+		colors['ghostwhite'] = 0xF8F8FF;
+		colors['salmon'] = 0xFA8072;
+		colors['antiquewhite'] = 0xFAEBD7;
+		colors['linen'] = 0xFAF0E6;
+		colors['lightgoldenrodyellow'] = 0xFAFAD2;
+		colors['oldlace'] = 0xFDF5E6;
+		colors['red'] = 0xFF0000;
+		colors['fuchsia'] = 0xFF00FF;
+		colors['magenta'] = 0xFF00FF;
+		colors['deeppink'] = 0xFF1493;
+		colors['orangered'] = 0xFF4500;
+		colors['tomato'] = 0xFF6347;
+		colors['hotpink'] = 0xFF69B4;
+		colors['coral'] = 0xFF7F50;
+		colors['darkorange'] = 0xFF8C00;
+		colors['lightsalmon'] = 0xFFA07A;
+		colors['orange'] = 0xFFA500;
+		colors['lightpink'] = 0xFFB6C1;
+		colors['pink'] = 0xFFC0CB;
+		colors['gold'] = 0xFFD700;
+		colors['peachpuff'] = 0xFFDAB9;
+		colors['navajowhite'] = 0xFFDEAD;
+		colors['moccasin'] = 0xFFE4B5;
+		colors['bisque'] = 0xFFE4C4;
+		colors['mistyrose'] = 0xFFE4E1;
+		colors['blanchedalmond'] = 0xFFEBCD;
+		colors['papayawhip'] = 0xFFEFD5;
+		colors['lavenderblush'] = 0xFFF0F5;
+		colors['seashell'] = 0xFFF5EE;
+		colors['cornsilk'] = 0xFFF8DC;
+		colors['lemonchiffon'] = 0xFFFACD;
+		colors['floralwhite'] = 0xFFFAF0;
+		colors['snow'] = 0xFFFAFA;
+		colors['yellow'] = 0xFFFF00;
+		colors['lightyellow'] = 0xFFFFE0;
+		colors['ivory'] = 0xFFFFF0;
+		colors['white'] = 0xFFFFFF;
+	}
+
+	public static function getColor(name:String):Null<UInt> {
+		if (inst==null) inst = new SVGColor();
+		if (inst.colors.exists(name)) return inst.colors[name];
+		return null;
 	}
 }
