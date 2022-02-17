@@ -118,11 +118,7 @@ class GfxBytes extends Gfx
 
             case GRADIENT_FILL:
               var grad = new Gradient();
-              #if (openfl_legacy || openfl < "3.6.0")
-              grad.type = Type.createEnumIndex(GradientType,buffer.readByte());
-              #else
               grad.type = cast buffer.readByte();
-              #end
               var len = buffer.readByte();
               for(i in 0...len)
               {
@@ -136,13 +132,8 @@ class GfxBytes extends Gfx
               grad.matrix.d = buffer.readFloat();
               grad.matrix.tx = buffer.readFloat();
               grad.matrix.ty = buffer.readFloat();
-              #if (openfl_legacy || openfl < "3.6.0")
-              grad.spread = spreadMethods[buffer.readByte()];
-              grad.interp = interpolationMethods[buffer.readByte()];
-              #else
               grad.spread = cast buffer.readByte();
               grad.interp = cast buffer.readByte();
-              #end
               grad.focus = buffer.readFloat();
               inGfx.beginGradientFill(grad);
 
@@ -155,15 +146,9 @@ class GfxBytes extends Gfx
               style.color = readRGB();
               style.alpha = buffer.readFloat();
               style.pixelHinting = buffer.readByte() > 0;
-              #if (openfl_legacy || openfl < "3.6.0")
-              style.scaleMode = scaleModes[buffer.readByte()];
-              style.capsStyle = capsStyles[buffer.readByte()];
-              style.jointStyle = jointStyles[buffer.readByte()];
-              #else
               style.scaleMode = cast buffer.readByte();
               style.capsStyle = cast buffer.readByte();
               style.jointStyle = cast buffer.readByte();
-              #end
               style.miterLimit = buffer.readFloat();
               inGfx.lineStyle(style);
 
@@ -223,11 +208,7 @@ class GfxBytes extends Gfx
    override public function beginGradientFill(grad:Gradient)
    {
       buffer.writeByte(GRADIENT_FILL);
-      #if (openfl_legacy || openfl < "3.6.0")
-      buffer.writeByte(Type.enumIndex(grad.type));
-      #else
       buffer.writeByte(cast grad.type);
-      #end
       buffer.writeByte(grad.colors.length);
       for(i in 0...grad.colors.length)
       {
@@ -241,13 +222,8 @@ class GfxBytes extends Gfx
       buffer.writeFloat(grad.matrix.d);
       buffer.writeFloat(grad.matrix.tx);
       buffer.writeFloat(grad.matrix.ty);
-      #if (openfl_legacy || openfl < "3.6.0")
-      buffer.writeByte(Type.enumIndex(grad.spread));
-      buffer.writeByte(Type.enumIndex(grad.interp));
-      #else
       buffer.writeByte(cast grad.spread);
       buffer.writeByte(cast grad.interp);
-      #end
       buffer.writeFloat(grad.focus);
    }
 
@@ -269,15 +245,9 @@ class GfxBytes extends Gfx
       writeRGB(style.color);
       buffer.writeFloat(style.alpha);
       buffer.writeByte(style.pixelHinting?1:0);
-      #if (openfl_legacy || openfl < "3.6.0")
-      buffer.writeByte(Type.enumIndex(style.scaleMode));
-      buffer.writeByte(Type.enumIndex(style.capsStyle));
-      buffer.writeByte(Type.enumIndex(style.jointStyle));
-      #else
       buffer.writeByte(cast style.scaleMode);
       buffer.writeByte(cast style.capsStyle);
       buffer.writeByte(cast style.jointStyle);
-      #end
       buffer.writeFloat(style.miterLimit);
    }
 
