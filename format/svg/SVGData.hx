@@ -753,6 +753,7 @@ class SVGData extends Group {
 					// Unknown element
 			}
 		}
+		font.toLime();
 
 		svgFont = font;
 	}

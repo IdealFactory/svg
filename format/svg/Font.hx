@@ -43,7 +43,16 @@ class Font #if lime extends OpenFLFont #end
             a.push(g.unicode);
         }
         return a;
-    }    
+    }  
+
+	public function toLime() {
+		ascender = fontFace.ascent;
+		descender = fontFace.descent;
+		height = Std.int(vertAdvY);
+        // underlinePosition = 
+        unitsPerEM = fontFace.unitsPerEm;
+	}
+
 }
 
 class FontFace
