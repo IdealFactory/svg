@@ -182,10 +182,11 @@ class SVGRenderer
           switch(inPath.fill)
           {
              case FillGrad(grad):
+                grad.bounds = inPath.getBounds();
                 grad.updateMatrix(m);
                 mGfx.beginGradientFill(grad);
-             case FillSolid(colour):
-                mGfx.beginFill(colour,inPath.fill_alpha*inPath.alpha);
+             case FillSolid(colour, alpha):
+                mGfx.beginFill(colour,inPath.fill_alpha*inPath.alpha*alpha);
              case FillNone:
                 //mGfx.endFill();
           }

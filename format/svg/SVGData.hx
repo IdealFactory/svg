@@ -43,7 +43,7 @@ class SVGData extends Group {
 	private static var mRotationMatch = ~/rotate\(([0-9\.]+)(\s+([0-9\.]+)\s*[, ]\s*([0-9\.]+))?\)/;
 	private static var mURLMatch = ~/url\(#(.*)\)/;
 	private static var mRGBMatch = ~/rgb\s*\(\s*(\d+)\s*(%)?\s*,\s*(\d+)\s*(%)?\s*,\s*(\d+)\s*(%)?\s*\)/;
-	private static var defaultFill = FillSolid(0x000000);
+	private static var defaultFill = FillSolid(0x000000, 0.0);
 	
 	public var height (default, null):Float;
 	public var width (default, null):Float;
@@ -237,13 +237,13 @@ class SVGData extends Group {
 		
 		if (s.charAt (0) == '#') {
 			
-			return FillSolid (parseHex(s.substr(1)));
+			return FillSolid (parseHex(s.substr(1)), 1.0);
 			
 		}
 
 		if (mRGBMatch.match (s)) {
 			
-			return FillSolid ( parseRGBMatch(mRGBMatch) );
+			return FillSolid ( parseRGBMatch(mRGBMatch), 1.0 );
 			
 		}
 		
@@ -307,7 +307,22 @@ class SVGData extends Group {
 		
 	}
 	
+
+	private function getPercent (inXML:Xml, inName:String, inDef:Float = -1):Float {
+		
+		if (inXML.exists (inName)) {
+			var val = inXML.get (inName);
+			if (val.indexOf("%")==val.length-1) {
+				var pcntVal = Math.max(0, Math.min(1, Std.parseFloat (val) / 100));
+				return pcntVal;
+			}
+			return inDef;
+		}
+		return inDef;
+		
+	}
 	
+
 	private function getRect (inXML:Xml, inName:String, inDef:Rectangle = null):Rectangle {
 		
 		if (inXML.exists (inName)) {
@@ -516,6 +531,10 @@ class SVGData extends Group {
 			grad.y1 = getFloat (inGrad, "y1", 0, height);
 			grad.x2 = getFloat (inGrad, "x2", width, width);
 			grad.y2 = getFloat (inGrad, "y2", height, height);
+			grad.x1Ratio = getPercent (inGrad, "x1", -1);
+			grad.y1Ratio = getPercent (inGrad, "y1", -1);
+			grad.x2Ratio = getPercent (inGrad, "x2", -1);
+			grad.y2Ratio = getPercent (inGrad, "y2", -1);
 
 		} else {
 			
@@ -523,6 +542,10 @@ class SVGData extends Group {
 			grad.y1 = getFloat (inGrad, "cy", height * 0.5, height);
 			grad.x2 = getFloat (inGrad, "fx", grad.x1, width);
 			grad.y2 = getFloat (inGrad, "fy", grad.y1, height);
+			grad.x1Ratio = getPercent (inGrad, "x1", -1);
+			grad.y1Ratio = getPercent (inGrad, "y1", -1);
+			grad.x2Ratio = getPercent (inGrad, "x2", -1);
+			grad.y2Ratio = getPercent (inGrad, "y2", -1);
 			
 		}
 
