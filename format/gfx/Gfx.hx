@@ -22,6 +22,7 @@ class Gfx
    public function endFill() { }
 
    public function lineStyle(style:LineStyle) { }
+   public function lineGradientStyle(grad:Gradient) { }
    public function endLineStyle() { }
 
    public function moveTo(inX:Float, inY:Float) { }

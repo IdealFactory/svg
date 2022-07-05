@@ -32,6 +32,10 @@ class GfxGraphics extends Gfx
    {
       graphics.lineStyle(style.thickness,style.color,style.alpha,style.pixelHinting,style.scaleMode,style.capsStyle,style.jointStyle,style.miterLimit);
    }
+   override public function lineGradientStyle(grad:Gradient)
+   {
+      graphics.lineGradientStyle(grad.type,grad.colors,grad.alphas,grad.ratios,grad.matrix,grad.spread,grad.interp,grad.focus);
+   }
    override public function endLineStyle() { graphics.lineStyle(); }
 
    override public function moveTo(inX:Float, inY:Float) { graphics.moveTo(inX,inY); }

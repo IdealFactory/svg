@@ -29,7 +29,7 @@ class Path
    public var alpha:Float;
    public var fill_alpha:Float;
    public var stroke_alpha:Float;
-   public var stroke_colour:Null<Int>;
+   public var stroke_colour:StrokeType;
    public var stroke_width:Float;
    public var stroke_caps:CapsStyle;
    public var stroke_style:StrokeStyle;

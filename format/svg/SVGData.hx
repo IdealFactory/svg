@@ -19,6 +19,7 @@ import format.svg.PathParser;
 import format.svg.PathSegment;
 import format.svg.Path;
 import format.svg.SVGRenderer;
+import format.svg.StrokeType;
 import format.svg.Text;
 import format.svg.Font;
 import haxe.io.Bytes;
@@ -365,7 +366,7 @@ class SVGData extends Group {
 	}
 
 
-	private function getStrokeStyle (inKey:String, inNode:Xml, inStyles:StringMap <String>, inDefault:Null<Int>) {
+	private function getStrokeStyle (inKey:String, inNode:Xml, inStyles:StringMap <String>, inDefault:StrokeType = StrokeType.StrokeNone) {
 		
 		var s = getStyle (inKey, inNode, inStyles, "");
 		
@@ -378,23 +379,37 @@ class SVGData extends Group {
 
 		if (mRGBMatch.match (s)) {
 			
-			return parseRGBMatch(mRGBMatch);
+			return StrokeSolid( parseRGBMatch(mRGBMatch), 1.0 );
 			
 		}
 		
 		if (s == "none") {
 			
-			return null;
+			return StrokeNone;
 			
 		}
 		
 		if (s.charAt (0) == '#') {
 			
-			return parseHex(s.substr(1));
+			return StrokeSolid( parseHex(s.substr(1)), 1.0 );
 			
 		}
-		
-		return Std.parseInt (s);
+
+		if (mURLMatch.match (s)) {
+			
+			var url = mURLMatch.matched (1);
+			
+			if (mGrads.exists (url)) {
+				
+				return StrokeGrad(mGrads.get(url));
+				
+			}
+			
+			throw ("Unknown url:" + url);
+			
+		}
+
+		return StrokeSolid( Std.parseInt (s), 1.0 );
 		
 	}
 	
@@ -947,7 +962,7 @@ class SVGData extends Group {
 		text.fill = getFillStyle ("fill", inText, styles);
 		text.fill_alpha = getFloatStyle ("fill-opacity", inText, styles, 1.0);
 		text.stroke_alpha = getFloatStyle ("stroke-opacity", inText, styles, 1.0);
-		text.stroke_colour = getStrokeStyle ("stroke", inText, styles, null);
+		text.stroke_colour = getStrokeStyle ("stroke", inText, styles, StrokeType.StrokeNone);
 		text.stroke_width = getFloatStyle ("stroke-width", inText, styles, 1.0);
 		text.font_family = getStyle ("font-family", inText, styles, "");
 		text.font_size = getFloatStyle ("font-size", inText, styles, 12);

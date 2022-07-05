@@ -22,6 +22,7 @@ import openfl.display.LineScaleMode;
 import format.svg.Grad;
 import format.svg.Group;
 import format.svg.FillType;
+import format.svg.StrokeStyle;
 import format.gfx.Gfx;
 import openfl.geom.Rectangle;
 
@@ -157,7 +158,7 @@ class SVGRenderer
           //  4. continue with "real" drawing
           inPath.segments[0].toGfx(mGfx, context);
 
-          if (inPath.stroke_colour==null)
+          if (inPath.stroke_colour==null || inPath.stroke_colour==StrokeNone)
           {
              //mGfx.lineStyle();
           }
@@ -166,13 +167,27 @@ class SVGRenderer
              var style = new format.gfx.LineStyle();
              var scale = Math.sqrt(m.a*m.a + m.d*m.d)/SQRT2;
              style.thickness = inPath.stroke_width*scale;
-             style.alpha = inPath.stroke_alpha*inPath.alpha;
-             style.color = inPath.stroke_colour;
              style.capsStyle = inPath.stroke_caps;
              style.jointStyle = inPath.joint_style;
              style.miterLimit = inPath.miter_limit;
+             
+             var g = null;
+             switch(inPath.stroke_colour)
+             {
+                case StrokeGrad(grad):
+                   grad.bounds = {xmin:15, ymin:-15, xmax:926, ymax:668}; //inPath.getBounds();
+                   grad.updateMatrix(m);
+                   g = grad;
+                case StrokeSolid(colour, alpha):
+                   style.alpha = inPath.stroke_alpha*inPath.alpha*alpha;
+                   style.color = colour;
+                case StrokeNone:
+                   //mGfx.lineStyle();
+             }
              mGfx.lineStyle(style);
-
+             if (g!=null)
+               mGfx.lineGradientStyle(g);
+ 
              for(segment in inPath.segments)
                segment.toGfx(mGfx, context);
   
@@ -192,7 +207,7 @@ class SVGRenderer
           }
 
 
-          if (inPath.stroke_colour==null)
+          if (inPath.stroke_colour==null || inPath.stroke_colour==StrokeNone)
           {
              //mGfx.lineStyle();
           }
@@ -201,12 +216,26 @@ class SVGRenderer
              var style = new format.gfx.LineStyle();
              var scale = Math.sqrt(m.a*m.a + m.d*m.d)/SQRT2;
              style.thickness = inPath.stroke_width*scale;
-             style.alpha = inPath.stroke_alpha*inPath.alpha;
-             style.color = inPath.stroke_colour;
              style.capsStyle = inPath.stroke_caps;
              style.jointStyle = inPath.joint_style;
              style.miterLimit = inPath.miter_limit;
+
+             var g = null;
+             switch(inPath.stroke_colour)
+             {
+                case StrokeGrad(grad):
+                   grad.bounds = inPath.getBounds();
+                   grad.updateMatrix(m);
+                   g = grad;
+                case StrokeSolid(colour, alpha):
+                   style.alpha = inPath.stroke_alpha*inPath.alpha*alpha;
+                   style.color = colour;
+                case StrokeNone:
+                   //mGfx.lineStyle();
+             }
              mGfx.lineStyle(style);
+             if (g!=null)
+               mGfx.lineGradientStyle(g);
           }
 
           for(segment in inPath.segments)
