@@ -44,7 +44,7 @@ class SVGData extends Group {
 	private static var mRotationMatch = ~/rotate\(([0-9\.]+)(\s+([0-9\.]+)\s*[, ]\s*([0-9\.]+))?\)/;
 	private static var mURLMatch = ~/url\(#(.*)\)/;
 	private static var mRGBMatch = ~/rgb\s*\(\s*(\d+)\s*(%)?\s*,\s*(\d+)\s*(%)?\s*,\s*(\d+)\s*(%)?\s*\)/;
-	private static var defaultFill = FillSolid(0x000000, 0.0);
+	private static var defaultFill = FillSolid(0x000000, 1.0);
 	
 	public var height (default, null):Float;
 	public var width (default, null):Float;
@@ -71,24 +71,42 @@ class SVGData extends Group {
 		mConvertCubics = inConvertCubics;
 		baseImageUrl = inBaseImageUrl;
 		
-		width = getFloatStyle ("width", svg, null, 0.0);
-		height = getFloatStyle ("height", svg, null, 0.0);
-		
-		if (width == 0 && height == 0)
-			width = height = 400;
-		else if (width == 0)
+		width = getFloatStyle("width", svg, null, 0.0);
+		height = getFloatStyle("height", svg, null, 0.0);
+
+        var viewBoxX = 0.;
+        var viewBoxY = 0.;
+        var viewBoxWidth = 0.;
+        var viewBoxHeight = 0.;
+
+        if (svg.exists("viewBox")) {
+
+            var vbox = svg.get("viewBox");
+            var params = vbox.indexOf(",") != -1 ? vbox.split(",") : vbox.split(" ");
+            viewBoxX = trimToFloat(params[0]);
+            viewBoxY = trimToFloat(params[1]);
+            viewBoxWidth = trimToFloat(params[2]);
+            viewBoxHeight = trimToFloat(params[3]);
+
+        }
+
+		if (width == 0 && height == 0) {
+            if(viewBoxWidth != 0) width = viewBoxWidth;
+            else width = 400;
+
+            if(viewBoxHeight != 0) height = viewBoxHeight;
+            else height = 400;
+
+        } else if (width == 0) {
 			width = height;
-		else if (height == 0)
+        } else if (height == 0) {
 			height = width;
+        }
 
 		var viewBox = new Rectangle(0, 0, width, height);
 
 		if (svg.exists("viewBox")) {
-
-			var vbox = svg.get("viewBox");
-			var params = vbox.indexOf(",") != -1 ? vbox.split(",") : vbox.split(" ");
-			viewBox = new Rectangle( trimToFloat(params[0]), trimToFloat(params[1]), trimToFloat(params[2]), trimToFloat(params[3]) );
-
+			viewBox = new Rectangle(viewBoxX, viewBoxY, viewBoxWidth, viewBoxHeight);
 		}
 
 		loadGroup(this, svg, new Matrix (1, 0, 0, 1, -viewBox.x, -viewBox.y), null);
