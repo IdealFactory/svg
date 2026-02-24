@@ -33,10 +33,17 @@ class Grad extends /*gm2d.gfx.Gradient*/format.gfx.Gradient
    }
    function set_bounds(b:PathBounds):PathBounds {
       _bounds = b;
+      var origX1 = x1;
+      var origY1 = y1;
+      var origX2 = x2;
+      var origY2 = y2;
       x1 = x1Ratio == -1 && x1!=0 ? b.xmin : b.xmin + ((b.xmax - b.xmin) * (x1Ratio==-1 ? 0 : x1Ratio));
       x2 = x2Ratio == -1 && x2!=0 ? b.xmax : b.xmin + ((b.xmax - b.xmin) * (x2Ratio==-1 ? 0 : x2Ratio));
       y1 = y1Ratio == -1 && y1!=0 ? b.ymin : b.ymin + ((b.ymax - b.ymin) * (y1Ratio==-1 ? 0 : y1Ratio));
       y2 = y2Ratio == -1 && y2!=0 ? b.ymax : b.ymin + ((b.ymax - b.ymin) * (y2Ratio==-1 ? 0 : y2Ratio));
+      // preserve original gradient direction
+      if (origY1 > origY2) { var tmp = y1; y1 = y2; y2 = tmp; }
+      if (origX1 > origX2) { var tmp = x1; x1 = x2; x2 = tmp; }
       return _bounds;
    }
 
