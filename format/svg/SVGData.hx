@@ -38,10 +38,10 @@ class SVGData extends Group {
 	private static inline var TAN22:Float = 0.4142135623730950488016887242097;
 	private static var mStyleSplit = ~/;/g;
 	private static var mStyleValue = ~/\s*(.*)\s*:\s*(.*)\s*/;
-	private static var mTranslateMatch = ~/translate\((.*)[, ](.*)\)/;
-	private static var mScaleMatch = ~/scale\((.*)\)/;
-	private static var mMatrixMatch = ~/matrix\((.*?)[, ]+(.*?)[, ]+(.*?)[, ]+(.*?)[, ]+(.*?)[, ]+(.*?)\)/;
-	private static var mRotationMatch = ~/rotate\(([0-9\.]+)(\s+([0-9\.]+)\s*[, ]\s*([0-9\.]+))?\)/;
+	private static var mTranslateMatch = ~/translate\(([^, ]+)[, ]([^)]+)\)/;
+	private static var mScaleMatch = ~/scale\(([^)]+)\)/;
+	private static var mMatrixMatch = ~/matrix\(([^, ]+)[, ]+([^, ]+)[, ]+([^, ]+)[, ]+([^, ]+)[, ]+([^, ]+)[, ]+([^)]+)\)/;
+	private static var mRotationMatch = ~/rotate\((-?[0-9\.]+)(\s+(-?[0-9\.]+)\s*[, ]\s*(-?[0-9\.]+))?\)/;
 	private static var mURLMatch = ~/url\(#(.*)\)/;
 	private static var mRGBMatch = ~/rgb\s*\(\s*(\d+)\s*(%)?\s*,\s*(\d+)\s*(%)?\s*,\s*(\d+)\s*(%)?\s*\)/;
 	private static var defaultFill = FillSolid(0x000000, 1.0);
@@ -127,62 +127,73 @@ class SVGData extends Group {
 		
 		var scale = 1.0;
 		
-        if (mTranslateMatch.match(inTrans))
-		{
-			// TODO: Pre-translate
-			
-			ioMatrix.translate (Std.parseFloat (mTranslateMatch.matched (1)), Std.parseFloat (mTranslateMatch.matched (2)));
-			
-		} else if (mScaleMatch.match (inTrans)) {
-			
-			// TODO: Pre-scale
-			var s = Std.parseFloat (mScaleMatch.matched (1));
-			ioMatrix.scale (s, s);
-			scale = s;
-			
-		} else if (mMatrixMatch.match (inTrans)) {
-			
-			var m = new Matrix (
-				Std.parseFloat (mMatrixMatch.matched (1)),
-				Std.parseFloat (mMatrixMatch.matched (2)),
-				Std.parseFloat (mMatrixMatch.matched (3)),
-				Std.parseFloat (mMatrixMatch.matched (4)),
-				Std.parseFloat (mMatrixMatch.matched (5)),
-				Std.parseFloat (mMatrixMatch.matched (6))
-			);
-			
-			m.concat (ioMatrix);
-			
-			ioMatrix.a = m.a;
-			ioMatrix.b = m.b;
-			ioMatrix.c = m.c;
-			ioMatrix.d = m.d;
-			ioMatrix.tx = m.tx;
-			ioMatrix.ty = m.ty;
-			
-			scale = Math.sqrt (ioMatrix.a * ioMatrix.a + ioMatrix.c * ioMatrix.c);
-        } else if (mRotationMatch.match (inTrans)) {
-            
-            var degrees = Std.parseFloat (mRotationMatch.matched (1));
-            
-            var rotationX = Std.parseFloat (mRotationMatch.matched (2));
-            if (Math.isNaN(rotationX)) {
-                rotationX = 0;
-            }	            
-            var rotationY = Std.parseFloat (mRotationMatch.matched (3));
-            if (Math.isNaN(rotationY)) {
-                rotationY = 0;
-            }
-            
-            var radians = degrees * Math.PI / 180;	
-            
-            ioMatrix.translate (-rotationX, -rotationY);
-            ioMatrix.rotate(radians);
-            ioMatrix.translate (rotationX, rotationY);
-		} else { 
-			
-			trace("Warning, unknown transform:" + inTrans);
-			
+		// SVG transforms can be a space-separated list of commands.
+		// Split by ')' to process each command individually.
+		var commands = inTrans.split(")");
+
+		for (cmd in commands) {
+
+			cmd = StringTools.trim(cmd);
+			if (cmd == "") continue;
+			cmd += ")";
+
+			if (mTranslateMatch.match(cmd))
+			{
+				// TODO: Pre-translate
+
+				ioMatrix.translate (Std.parseFloat (mTranslateMatch.matched (1)), Std.parseFloat (mTranslateMatch.matched (2)));
+
+			} else if (mScaleMatch.match (cmd)) {
+
+				// TODO: Pre-scale
+				var s = Std.parseFloat (mScaleMatch.matched (1));
+				ioMatrix.scale (s, s);
+				scale = s;
+
+			} else if (mMatrixMatch.match (cmd)) {
+
+				var m = new Matrix (
+					Std.parseFloat (mMatrixMatch.matched (1)),
+					Std.parseFloat (mMatrixMatch.matched (2)),
+					Std.parseFloat (mMatrixMatch.matched (3)),
+					Std.parseFloat (mMatrixMatch.matched (4)),
+					Std.parseFloat (mMatrixMatch.matched (5)),
+					Std.parseFloat (mMatrixMatch.matched (6))
+				);
+
+				m.concat (ioMatrix);
+
+				ioMatrix.a = m.a;
+				ioMatrix.b = m.b;
+				ioMatrix.c = m.c;
+				ioMatrix.d = m.d;
+				ioMatrix.tx = m.tx;
+				ioMatrix.ty = m.ty;
+
+				scale = Math.sqrt (ioMatrix.a * ioMatrix.a + ioMatrix.c * ioMatrix.c);
+			} else if (mRotationMatch.match (cmd)) {
+
+				var degrees = Std.parseFloat (mRotationMatch.matched (1));
+
+				var rotationX = Std.parseFloat (mRotationMatch.matched (2));
+				if (Math.isNaN(rotationX)) {
+					rotationX = 0;
+				}
+				var rotationY = Std.parseFloat (mRotationMatch.matched (3));
+				if (Math.isNaN(rotationY)) {
+					rotationY = 0;
+				}
+
+				var radians = degrees * Math.PI / 180;
+
+				ioMatrix.translate (-rotationX, -rotationY);
+				ioMatrix.rotate(radians);
+				ioMatrix.translate (rotationX, rotationY);
+			} else if (cmd != ")") {
+
+				trace("Warning, unknown transform:" + cmd);
+
+			}
 		}
 		
 		return scale;
