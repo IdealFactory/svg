@@ -49,6 +49,7 @@ class SVGRenderer
     var mFilter : ObjectFilter;
     var mGroupPath : GroupPath;
     var parent : Sprite;
+    public var separatePathGraphics:Bool = false;
 
     public function new(inSvg:SVGData,?inLayer:String)
     {
@@ -256,7 +257,7 @@ class SVGRenderer
 
 
 
-    public function iterateGroup(inGroup:Group,inIgnoreDot:Bool,separateGraphics:Bool = false)
+    public function iterateGroup(inGroup:Group,inIgnoreDot:Bool,separateGraphics:Bool = false, separatePathGraphics:Bool = false)
     {
 		// Convention for hidden layers ...
 		if (inIgnoreDot && inGroup.name !=null && inGroup.name.substr(0,1) == ".")
@@ -271,6 +272,7 @@ class SVGRenderer
 			{
 				case DisplayGroup(group):
 					var oldParent = parent;
+					var oldGfx = mGfx;
 					if (separateGraphics) {
 						var s:Sprite = cast parent.getChildByName(group.name);
 						if (s == null) {
@@ -282,12 +284,25 @@ class SVGRenderer
 						mGfx = new format.gfx.GfxGraphics(s.graphics);
 						parent = s;
 					}
-					iterateGroup(group,inIgnoreDot,separateGraphics);
+					iterateGroup(group,inIgnoreDot,separateGraphics,separatePathGraphics);
 					if (separateGraphics) {
 						parent = oldParent;
+						mGfx = oldGfx;
 					}
 				case DisplayPath(path):
-					iteratePath(path);
+					if (separatePathGraphics && parent != null && path.name != null && path.name != "") {
+						var s = new Sprite();
+						s.name = path.name;
+						s.mouseEnabled = true;
+						s.buttonMode = true;
+						parent.addChild(s);
+						var oldGfx = mGfx;
+						mGfx = new format.gfx.GfxGraphics(s.graphics);
+						iteratePath(path);
+						mGfx = oldGfx;
+					} else {
+						iteratePath(path);
+					}
 				case DisplayText(text):
 					iterateText(text);
 				case DisplayImage(image):
@@ -458,14 +473,15 @@ class SVGRenderer
       mRoot = oldmRoot;
     }
   
-    public function renderDisplayList(inObj:Sprite)
+    public function renderDisplayList(inObj:Sprite, ?separatePaths:Bool = false)
     {
        parent = inObj;
        mGfx = new format.gfx.GfxGraphics(inObj.graphics);
        mMatrix = new Matrix();
        mGroupPath = [];
+       separatePathGraphics = separatePaths;
 
-       iterateGroup(mRoot,false,true);
+       iterateGroup(mRoot,false,true,separatePaths);
     }
   
 

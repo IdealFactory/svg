@@ -50,7 +50,7 @@ class SVG {
 	}
 	
 	
-	public function renderDisplayList (sprite:Sprite, x:Float = 0, y:Float = 0, width:Int = -1, height:Int = -1, ?loadImageCallback:Image->Void, ?inLayer:String = null) {
+	public function renderDisplayList (sprite:Sprite, x:Float = 0, y:Float = 0, width:Int = -1, height:Int = -1, ?loadImageCallback:Image->Void, ?inLayer:String = null, ?separatePaths:Bool = false) {
 		
 		if (data == null) return;
 		
@@ -68,7 +68,7 @@ class SVG {
 		renderer.loadImageCallback = loadImageCallback;
 		// renderer.baseImagePath = baseImagePath;
 
-		renderer.renderDisplayList (sprite);
+		renderer.renderDisplayList (sprite, separatePaths);
 		
 	}
 }
