@@ -20,17 +20,25 @@ class Image
 	public var visible:Bool;
 	public var parentGroupName:String;
 
+	// When false, the image is drawn by its transform at the supplied bitmap's
+	// own resolution instead of being scaled to the SVG width/height box.
+	public static var scaleToBounds:Bool = true;
+
 	public function new() {}
 
 	public function copyDataToBitmap():Void {
 		bitmap.smoothing = true;
-		bitmap.x = x;
-		bitmap.y = y;
-		bitmap.width = width;
-		bitmap.height = height;
-		var m = bitmap.transform.matrix;
-		m.concat(matrix);
-		bitmap.transform.matrix = m;
+		if (scaleToBounds) {
+			bitmap.x = x;
+			bitmap.y = y;
+			bitmap.width = width;
+			bitmap.height = height;
+			var m = bitmap.transform.matrix;
+			m.concat(matrix);
+			bitmap.transform.matrix = m;
+		} else {
+			bitmap.transform.matrix = matrix;
+		}
 	}
 
 }
