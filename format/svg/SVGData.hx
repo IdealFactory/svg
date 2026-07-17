@@ -127,6 +127,19 @@ class SVGData extends Group {
 		
 		var scale = 1.0;
 		
+		// Pre-concatenate the child transform so it applies inside (before) the
+		// accumulated parent matrix; OpenFL Matrix translate/rotate/scale append
+		// in parent space, which would reverse a translate()+rotate() command list.
+		function concatLocal (local:Matrix):Void {
+			local.concat (ioMatrix);
+			ioMatrix.a = local.a;
+			ioMatrix.b = local.b;
+			ioMatrix.c = local.c;
+			ioMatrix.d = local.d;
+			ioMatrix.tx = local.tx;
+			ioMatrix.ty = local.ty;
+		}
+
 		// SVG transforms can be a space-separated list of commands.
 		// Split by ')' to process each command individually.
 		var commands = inTrans.split(")");
@@ -139,15 +152,16 @@ class SVGData extends Group {
 
 			if (mTranslateMatch.match(cmd))
 			{
-				// TODO: Pre-translate
-
-				ioMatrix.translate (Std.parseFloat (mTranslateMatch.matched (1)), Std.parseFloat (mTranslateMatch.matched (2)));
+				var m = new Matrix ();
+				m.translate (Std.parseFloat (mTranslateMatch.matched (1)), Std.parseFloat (mTranslateMatch.matched (2)));
+				concatLocal (m);
 
 			} else if (mScaleMatch.match (cmd)) {
 
-				// TODO: Pre-scale
 				var s = Std.parseFloat (mScaleMatch.matched (1));
-				ioMatrix.scale (s, s);
+				var m = new Matrix ();
+				m.scale (s, s);
+				concatLocal (m);
 				scale = s;
 
 			} else if (mMatrixMatch.match (cmd)) {
@@ -161,14 +175,7 @@ class SVGData extends Group {
 					Std.parseFloat (mMatrixMatch.matched (6))
 				);
 
-				m.concat (ioMatrix);
-
-				ioMatrix.a = m.a;
-				ioMatrix.b = m.b;
-				ioMatrix.c = m.c;
-				ioMatrix.d = m.d;
-				ioMatrix.tx = m.tx;
-				ioMatrix.ty = m.ty;
+				concatLocal (m);
 
 				scale = Math.sqrt (ioMatrix.a * ioMatrix.a + ioMatrix.c * ioMatrix.c);
 			} else if (mRotationMatch.match (cmd)) {
@@ -186,9 +193,11 @@ class SVGData extends Group {
 
 				var radians = degrees * Math.PI / 180;
 
-				ioMatrix.translate (-rotationX, -rotationY);
-				ioMatrix.rotate(radians);
-				ioMatrix.translate (rotationX, rotationY);
+				var m = new Matrix ();
+				m.translate (-rotationX, -rotationY);
+				m.rotate (radians);
+				m.translate (rotationX, rotationY);
+				concatLocal (m);
 			} else if (cmd != ")") {
 
 				trace("Warning, unknown transform:" + cmd);

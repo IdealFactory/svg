@@ -319,23 +319,25 @@ class ArcSegment extends PathSegment
        var Tyc:Float;
        var Tys:Float;
        var Ty0:Float;
+       // cos/sin are cos(phi)/sin(phi); fold the arc's x-axis rotation into the
+       // ellipse parametrisation so a rotated arc is not drawn axis-aligned.
        if (m!=null)
        {
-          Txc = m.a*rx;
-          Txs = m.c*ry;
+          Txc = rx*(m.a*cos + m.c*sin);
+          Txs = ry*(m.c*cos - m.a*sin);
           Tx0 = m.a*cx + m.c*cy + m.tx;
-          Tyc = m.b*rx;
-          Tys = m.d*ry;
+          Tyc = rx*(m.b*cos + m.d*sin);
+          Tys = ry*(m.d*cos - m.b*sin);
           Ty0 = m.b*cx + m.d*cy + m.ty;
        }
        else
        {
-          Txc = rx;
-          Txs = 0;
-          Tx0 = cx+m.tx;
-          Tyc = 0;
-          Tys = ry;
-          Ty0 = cy+m.ty;
+          Txc = rx*cos;
+          Txs = -ry*sin;
+          Tx0 = cx;
+          Tyc = rx*sin;
+          Tys = ry*cos;
+          Ty0 = cy;
        }
 
        var len = Math.abs(dtheta)*Math.sqrt(Txc*Txc + Txs*Txs + Tyc*Tyc + Tys*Tys);
